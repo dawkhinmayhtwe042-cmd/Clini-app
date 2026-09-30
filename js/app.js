@@ -3,6 +3,24 @@
    ============================================================ */
 'use strict';
 
+/* ============================================================
+   v3 GUEST GATE (client-side only — not high security)
+   clinic_guest_v1='1'  → guest (view-only, login skipped)
+   clinic_unlocked_v1='1' → password entered → normal complete flow
+   ============================================================ */
+const GUEST_PASS = 'N@yn@ystar27';
+function isGuest() {
+  try { return localStorage.getItem('clinic_guest_v1') === '1' && !isConfigured(); }
+  catch { return false; }
+}
+function needsWelcome() {
+  try {
+    return !isConfigured() &&
+      localStorage.getItem('clinic_guest_v1') !== '1' &&
+      localStorage.getItem('clinic_unlocked_v1') !== '1';
+  } catch { return false; }
+}
+
 function parseHash() {
   const h = location.hash || '#/';
   const [path, query] = h.slice(2).split('?');
@@ -13,12 +31,25 @@ async function route() {
   const { parts, q } = parseHash();
   const [r1, r2, r3] = parts;
 
+  // v3 guest mode: drugs + KB demo only; restricted areas → upgrade prompt
+  if (isGuest()) {
+    if (!r1 || r1 === 'guest') { vGuestHome(); return; }
+    if (r1 === 'kb') { vGuestKB(); return; }
+    if (r1 === 'drugs') { vDrugs(); return; }
+    if (r1 === 'drug' && r2) { vDrugDetail(r2); return; }
+    vGuestHome();
+    setTimeout(() => window.showUpgrade && window.showUpgrade(), 60);
+    return;
+  }
+  // never set up and never chose → welcome gate
+  if (needsWelcome()) { vWelcome(); return; }
+
   // not configured → setup
   if (!isConfigured() && r1 !== 'setup') { location.hash = '#/setup'; return; }
   if (r1 === 'setup') { vSetup(); return; }
 
-  // not logged in → login
-  if (!Auth.user()) {
+  // not logged in → login (offline APK mode skips login with a local doctor stub)
+  if (!Auth.user() && !isOfflineMode()) {
     if (r1 !== 'login') { location.hash = '#/login'; return; }
     vLogin(); return;
   }
@@ -68,11 +99,30 @@ async function boot() {
   if ('serviceWorker' in navigator) {
     try { await navigator.serviceWorker.register('sw.js'); } catch (e) { console.warn('sw', e); }
   }
-  if (isConfigured() && Auth.user()) {
-    await loadProfile();
+  // v3 welcome gate (fresh install, nothing chosen yet)
+  if (needsWelcome()) { vWelcome(); return; }
+  // v3 guest mode: view-only, no login, no sync, no backup
+  if (isGuest()) {
     await ensureLocalDrugSeed();
-    await ensureStarterTemplates();
-    Sync.run();
+    route();
+    return;
+  }
+  if (isConfigured()) {
+    if (isOfflineMode()) {
+      // offline APK: local doctor stub, no Supabase login needed
+      const c = getCfg();
+      App.user = { id: 'local-doctor', email: '' };
+      App.profile = { id: 'local-doctor', name: c.doctorName || c.clinicName || 'Doctor', email: '', role: 'doctor' };
+    } else if (Auth.user()) {
+      await loadProfile();
+    }
+    if (App.user) {
+      await ensureLocalDrugSeed();
+      await dedupeDrugs();
+      await ensureStarterTemplates();
+      try { await bkMaybeAuto(); } catch (e) { console.warn('auto backup', e.message); }
+      Sync.run();
+    }
   }
   route();
 }

@@ -275,3 +275,43 @@ drop policy if exists p_drugs_update on public.drugs;
 create policy p_drugs_update on public.drugs for update to authenticated using (true) with check (true);
 drop policy if exists p_drugs_delete on public.drugs;
 create policy p_drugs_delete on public.drugs for delete to authenticated using (public.is_doctor());
+
+-- ============================================================
+-- v3 upgrade (2026-09-30): extended patient factors, visit vitals,
+-- investigations, pharmacist notes, new drug fields.
+-- Safe to re-run on DBs that already ran v1/v1.1 (IF NOT EXISTS).
+-- ============================================================
+
+-- patients: extended risk factors
+alter table public.patients add column if not exists liver_issue text default 'none';
+alter table public.patients add column if not exists g6pd boolean default false;
+alter table public.patients add column if not exists heart_failure boolean default false;
+alter table public.patients add column if not exists asthma_copd boolean default false;
+alter table public.patients add column if not exists epilepsy boolean default false;
+alter table public.patients add column if not exists thyroid text default '';
+alter table public.patients add column if not exists smoking text default 'no';
+alter table public.patients add column if not exists alcohol text default 'no';
+
+-- visits: vitals block + planned investigations (JSON array as text)
+alter table public.visits add column if not exists vitals_bp_sys int;
+alter table public.visits add column if not exists vitals_bp_dia int;
+alter table public.visits add column if not exists vitals_hr int;
+alter table public.visits add column if not exists vitals_weight numeric;
+alter table public.visits add column if not exists vitals_temp numeric;
+alter table public.visits add column if not exists vitals_rbs numeric;
+alter table public.visits add column if not exists vitals_fbs numeric;
+alter table public.visits add column if not exists vitals_hba1c numeric;
+alter table public.visits add column if not exists planned_investigations text default '[]';
+
+-- prescriptions: pharmacist review note
+alter table public.prescriptions add column if not exists pharmacist_note text default '';
+
+-- prescription_items: per-item food timing code
+-- (after_food|before_food|with_food|bedtime|morning|any)
+alter table public.prescription_items add column if not exists timing text default '';
+
+-- drugs: liver text, G6PD risk flag, food timing code, counseling points
+alter table public.drugs add column if not exists liver text default '';
+alter table public.drugs add column if not exists g6pd_risk text default '';
+alter table public.drugs add column if not exists timing text default '';
+alter table public.drugs add column if not exists counsel text default '';

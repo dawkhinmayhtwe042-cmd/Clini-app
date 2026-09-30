@@ -82,6 +82,7 @@ my: {
   dr_allergy: 'Allergy ဓာတ်ပြုမှု', dr_preg: 'ကိုယ်ဝန်/နို့တိုက်', dr_mon: 'စောင့်ကြည့်ရန်',
   dr_saved: 'သိမ်းပြီးပါပြီ', dr_deleted: 'ဖျက်ပြီးပါပြီ', dr_del_confirm: 'ဤဆေးကို ဖျက်မည်လား?',
   dr_not_found: 'ဆေးမတွေ့ပါ', dr_none: 'ဆေးမရှိသေးပါ', dr_import: '📥 CSV import',
+  dr_count: 'ဆေးစုစုပေါင်း: {0} မျိုး', dr_show_more: 'ပိုပြရန် (ကျန် {0} မျိုး)',
   dr_import_done: 'သွင်းပြီးပါပြီ: {0} မျိုး', dr_hint_doc: 'ဆရာဝန်သာ ပြင်/ဖျက်/ထည့်နိုင်သည်',
   ped_ok: 'ပုံမှန်', ped_caution: 'သတိထား', ped_contra: 'မသုံးရ', ped_no_data: 'အချက်အလက်မရှိ',
 
@@ -128,6 +129,12 @@ my: {
 
   su_title: 'စတင်ရန် ဆက်တင်', su_desc: 'Supabase ချိတ်ဆက်မှုထည့်ပါ (တစ်ကြိမ်တည်း)',
   su_start: 'စတင်မည်', su_need: 'URL နှင့် key ထည့်ပါ',
+  su_offline: '📴 Offline သုံးမည် (Supabase မလို)', su_offline_hint: 'ဒေတာအားလုံး ဒီဖုန်းထဲမှာပဲ သိမ်းမယ်။ နောက်မှ Settings မှာ Supabase ထည့်ပြီး sync လုပ်လို့ရတယ်။',
+  bk_title: 'အရန်သိမ်းဆည်းမှု (Backup)', bk_last: 'နောက်ဆုံး backup', bk_folder: 'Backup folder',
+  bk_now: '💾 အခု backup လုပ်မည်', bk_saved: 'Backup သိမ်းပြီးပါပြီ ✅', bk_failed: 'Backup မအောင်မြင်ပါ: {0}',
+  bk_never: 'မလုပ်ရသေးပါ', bk_downloaded: 'ဖိုင်ဒေါင်းလုဒ်လုပ်ပြီး',
+  bk_browser_note: 'Browser မှာ ဖိုင်ဒေါင်းလုဒ်အနေနဲ့ သိမ်းမယ်',
+  bk_auto_hint: 'App ဖွင့်တိုင်း နောက်ဆုံး backup က ၂၄ နာရီကျော်နေရင် အလိုအလျောက် backup လုပ်မယ်။',
 
   w_allergy: 'Allergy သတိပေးချက်', w_ped_weight: 'ကလေးလူနာ — ကိုယ်အလေးချိန်လိုအပ်သည်',
   w_ped_weight_d: 'ဆေးပမာဏ တိကျစွာစစ်ဆေးရန် ကလေး၏ ကိုယ်အလေးချိန် (kg) ကို လူနာမှတ်တမ်းတွင် ထည့်ပါ။',
@@ -141,6 +148,69 @@ my: {
 
   adv_title: 'ဆေးညွှန်းအကြံပြုချက်', adv_suggest_only: '(အကြံပြုချက်သာ)', adv_source: 'ရင်းမြစ်',
   adv_note: '⚠️ အကြံပြုချက်သာဖြစ်ပြီး ဆရာဝန်၏ ဆုံးဖြတ်ချက်ကို အစားမထိုးပါ။',
+
+  /* ===== v3: extended patient factors ===== */
+  p_liver: 'အသည်းအခြေအနေ', liver_none: 'ပုံမှန်', liver_mild: 'အနည်းငယ်',
+  liver_moderate: 'အလယ်အလတ်', liver_severe: 'ပြင်းထန်',
+  p_g6pd: 'G6PD ချို့တဲ့ခြင်း', p_hf: 'နှလုံးအားနည်းခြင်း',
+  p_asthma_copd: 'ပန်းနာ / COPD', p_epilepsy: 'တက်ခြင်း (Epilepsy)',
+  p_thyroid: 'သိုင်းရွိုက်ရောဂါ', p_smoking: 'ဆေးလိပ်သောက်ခြင်း', p_alcohol: 'အရက်သောက်ခြင်း',
+  smoke_no: 'မသောက်ပါ', smoke_occ: 'တစ်ခါတစ်ရံ', smoke_daily: 'နေ့စဉ်',
+  alc_no: 'မသောက်ပါ', alc_occ: 'တစ်ခါတစ်ရံ', alc_reg: 'ပုံမှန်',
+  p_elderly: 'သက်ကြီးရွယ်အို (≥65)',
+
+  /* ===== v3: vitals ===== */
+  v_vitals: 'အသက်လက္ခဏာများ (Vitals)',
+  vit_bp_sys: 'သွေးပေါင်ချိန် အပေါ် (sys)', vit_bp_dia: 'သွေးပေါင်ချိန် အောက် (dia)',
+  vit_hr: 'နှလုံးခုန်နှုန်း (/min)', vit_wt: 'အလေးချိန် (kg)',
+  vit_temp: 'အပူချိန် (°F)', vit_rbs: 'RBS (mg/dL)', vit_fbs: 'FBS (mg/dL)', vit_hba1c: 'HbA1c (%)',
+
+  /* ===== v3: investigations + DDx ===== */
+  inv_suggest_btn: '🔬 စစ်ဆေးချက်အကြံပြုချက်', inv_title: 'စစ်ဆေးရန်အကြံပြုချက်များ',
+  inv_planned: 'စီစဉ်ထားသောစစ်ဆေးချက်များ', inv_source: 'ရင်းမြစ်',
+  inv_added: 'စစ်ဆေးချက်ထည့်ပြီးပါပြီ', inv_none: 'ရောဂါလက္ခဏာနှင့်ကိုက်ညီသော အကြံပြုချက်မတွေ့ပါ',
+  ddx_btn: '🩺 လုပ်ဖော်ဆရာဝန်အကြံ (DDx)', ddx_title: 'လုပ်ဖော်ဆရာဝန်အကြံ — ဖြစ်နိုင်သောရောဂါများ',
+  ddx_reason: 'အကြောင်းရင်း', ddx_redflags: '🚩 အနီရောင်အချက်ပြများ (သတိထား)',
+  ddx_summary_btn: '📋 Case summary ထုတ်မည်', ddx_summary_title: 'Case Presentation (Senior သို့တင်ပြရန်)',
+  ddx_copy: '📋 ကူးယူမည်', ddx_copied: 'ကူးယူပြီးပါပြီ', ddx_none: 'မတွေ့ပါ — ရောဂါလက္ခဏာကို ရှင်းရှင်းရေးပါ',
+
+  /* ===== v3: food timing ===== */
+  tim_label: 'အစားအသောက်နှင့်ဆက်စပ်မှု',
+  tim_after_food: 'အစာစားပြီးတိုင်း', tim_before_food: 'အစာမစားမီ', tim_with_food: 'အစာနှင့်အတူ',
+  tim_bedtime: 'အိပ်ရာဝင်ချိန်', tim_morning: 'မနက်ပိုင်း', tim_any: 'အချိန်မရွေး',
+  rx_autofill_timing: '⏱️ ဆေးအချိန်အလိုအလျောက် ဖြည့်မည်',
+
+  /* ===== v3: pharmacist review ===== */
+  ph_title: 'ဆေးပညာရှင်ပြန်လည်စစ်ဆေးချက် (Pharmacist review)',
+  ph_dup: '🔁 ထပ်နေသောကုထုံး (Duplicate therapy)',
+  ph_counsel: '🗣️ လူနာအားပြောပြရန် (Counseling)',
+  ph_note: 'ဆေးပညာရှင်မှတ်ချက်', ph_note_ph: 'ဥပမာ: ပမာဏပြန်စစ်ပြီး — မှန်ကန်ပါသည်',
+  ph_std: 'ပုံမှန်စံပမာဏအတိုင်း — အထူးသတိပြုရန်မရှိ',
+
+  /* ===== v3: follow-up trends ===== */
+  fu_trend: '📈 အသက်လက္ခဏာလမ်းကြောင်း',
+  fu_bp3: 'သွေးပေါင်ချိန် ၃ ကြိမ်ဆက် ≥140/90 — ကုထုံးတိုးမြှင့်ရန် စဉ်းစားပါ (WHO HEARTS)',
+  fu_bp_urgent: 'သွေးပေါင်ချိန်အလွန်မြင့် (≥180/110) — အရေးပေါ်ပြန်လည်စစ်ဆေးပါ (WHO HEARTS)',
+  fu_glucose: 'သွေးတွင်းသကြားဓာတ်များနေသည် — ထိန်းချုပ်မှုပြန်လည်သုံးသပ်ပါ (ADA Standards of Care)',
+
+  /* ===== v3: guest mode ===== */
+  nav_kb: 'အသိပညာ',
+  g_welcome_title: 'ဆေးခန်းမှတ်တမ်းမှ ကြိုဆိုပါတယ်',
+  g_welcome_sub: 'မည်သို့ဆက်လုပ်မလဲ ရွေးချယ်ပါ',
+  g_btn_guest: '👤 Guest mode (ကြည့်ရှုရန်သာ)',
+  g_btn_full: '🔓 Complete version',
+  g_password: 'စကားဝှက်', g_wrong: '❌ စကားဝှက်မှားနေပါသည်',
+  g_banner: '👤 Guest mode — ကြည့်ရှုရန်သာ',
+  g_unlock: '🔓 Complete version ဖွင့်မည်',
+  g_upgrade_title: '🔓 Complete version ဖွင့်ရန်',
+  g_upgrade_d: 'ဤလုပ်ဆောင်ချက်အတွက် complete version လိုအပ်ပါသည်။ ဆရာဝန်ထံမှ ရထားသော စကားဝှက်ထည့်ပါ။',
+  g_home_drugs: '💊 ဆေးအဘိဓာန်ကြည့်ရန်', g_home_kb: '🔬 စစ်ဆေးချက် + DDx အသိပညာ',
+  g_readonly: 'ℹ️ ကြည့်ရှုရန်သာ — မှတ်တမ်းသိမ်းဆည်းခြင်း မရှိပါ',
+  g_kb_title: '🔬 စစ်ဆေးချက် + DDx အသိပညာ',
+  g_demo_ph: 'ရောဂါလက္ခဏာရိုက်ထည့်ပါ (ဥပမာ: fever, cough / အဖျား, ချောင်းဆိုး)',
+  g_demo_btn: '🔍 အကြံပြုချက်ရှာမည်',
+
+  disc2: 'ဤအကြံပြုချက်များသည် အကူအညီသက်သက်ဖြစ်ပြီး ဆရာဝန်၏ဆုံးဖြတ်ချက်ကို အစားမထိုးပါ။',
 
   disc: '⚠️ ဤအက်ပ်သည် အကူအညီပေးစနစ်သာဖြစ်ပြီး ဆရာဝန်၏ ဆုံးဖြတ်ချက်ကို အစားမထိုးပါ။ သတိပေးချက်များသည် အကြံပြုချက်သာဖြစ်သည်။',
   offline: '📴 offline', sync_wait: '🔄 {0} စောင့်', sync_ok: '✅ sync',
@@ -216,6 +286,7 @@ en: {
   dr_allergy: 'Allergy cross-reactivity', dr_preg: 'Pregnancy/breastfeeding', dr_mon: 'Monitoring',
   dr_saved: 'Saved', dr_deleted: 'Deleted', dr_del_confirm: 'Delete this drug?',
   dr_not_found: 'Drug not found', dr_none: 'No drugs yet', dr_import: '📥 Import CSV',
+  dr_count: 'Total drugs: {0}', dr_show_more: 'Show more ({0} remaining)',
   dr_import_done: 'Imported: {0} drugs', dr_hint_doc: 'Only the doctor can add/edit/delete',
   ped_ok: 'Standard', ped_caution: 'Caution', ped_contra: 'Contra', ped_no_data: 'No data',
 
@@ -262,6 +333,12 @@ en: {
 
   su_title: 'Initial setup', su_desc: 'Enter your Supabase connection (one time)',
   su_start: 'Start', su_need: 'Please enter URL and key',
+  su_offline: '📴 Use offline only (no Supabase)', su_offline_hint: 'All data stays on this phone. You can add Supabase sync later in Settings.',
+  bk_title: 'Backup', bk_last: 'Last backup', bk_folder: 'Backup folder',
+  bk_now: '💾 Backup now', bk_saved: 'Backup saved ✅', bk_failed: 'Backup failed: {0}',
+  bk_never: 'Never', bk_downloaded: 'downloaded file',
+  bk_browser_note: 'Saved as a downloaded file in the browser',
+  bk_auto_hint: 'Auto-backup runs on launch when the last backup is over 24h old.',
 
   w_allergy: 'Allergy alert', w_ped_weight: 'Child patient — weight needed',
   w_ped_weight_d: "Enter the child's weight (kg) in the patient record for accurate dose checking.",
@@ -275,6 +352,69 @@ en: {
 
   adv_title: 'Prescribing advice', adv_suggest_only: '(suggestions only)', adv_source: 'Source',
   adv_note: '⚠️ Suggestions only — they do not replace the doctor\'s judgment.',
+
+  /* ===== v3: extended patient factors ===== */
+  p_liver: 'Liver status', liver_none: 'Normal', liver_mild: 'Mild',
+  liver_moderate: 'Moderate', liver_severe: 'Severe',
+  p_g6pd: 'G6PD deficiency', p_hf: 'Heart failure',
+  p_asthma_copd: 'Asthma / COPD', p_epilepsy: 'Epilepsy',
+  p_thyroid: 'Thyroid disease', p_smoking: 'Smoking', p_alcohol: 'Alcohol use',
+  smoke_no: 'No', smoke_occ: 'Occasional', smoke_daily: 'Daily',
+  alc_no: 'No', alc_occ: 'Occasional', alc_reg: 'Regular',
+  p_elderly: 'Elderly (≥65)',
+
+  /* ===== v3: vitals ===== */
+  v_vitals: 'Vitals',
+  vit_bp_sys: 'BP systolic', vit_bp_dia: 'BP diastolic',
+  vit_hr: 'Heart rate (/min)', vit_wt: 'Weight (kg)',
+  vit_temp: 'Temp (°F)', vit_rbs: 'RBS (mg/dL)', vit_fbs: 'FBS (mg/dL)', vit_hba1c: 'HbA1c (%)',
+
+  /* ===== v3: investigations + DDx ===== */
+  inv_suggest_btn: '🔬 Investigation suggestions', inv_title: 'Suggested investigations',
+  inv_planned: 'Planned investigations', inv_source: 'Source',
+  inv_added: 'Investigation added', inv_none: 'No matching suggestions — describe the symptoms more clearly',
+  ddx_btn: '🩺 Colleague advice (DDx)', ddx_title: 'Colleague advice — possible diagnoses',
+  ddx_reason: 'Reasoning', ddx_redflags: '🚩 Red flags (watch for)',
+  ddx_summary_btn: '📋 Generate case summary', ddx_summary_title: 'Case Presentation (for senior review)',
+  ddx_copy: '📋 Copy', ddx_copied: 'Copied', ddx_none: 'None found — describe the symptoms more clearly',
+
+  /* ===== v3: food timing ===== */
+  tim_label: 'Food timing',
+  tim_after_food: 'after food', tim_before_food: 'before food', tim_with_food: 'with food',
+  tim_bedtime: 'at bedtime', tim_morning: 'in the morning', tim_any: 'any time',
+  rx_autofill_timing: '⏱️ Auto-fill food timing',
+
+  /* ===== v3: pharmacist review ===== */
+  ph_title: 'Pharmacist review',
+  ph_dup: '🔁 Duplicate therapy',
+  ph_counsel: '🗣️ Counseling points',
+  ph_note: 'Pharmacist note', ph_note_ph: 'e.g. dose re-verified — correct',
+  ph_std: 'Standard dosing — nothing special flagged',
+
+  /* ===== v3: follow-up trends ===== */
+  fu_trend: '📈 Vitals trend',
+  fu_bp3: 'BP ≥140/90 on 3 consecutive visits — consider intensifying therapy (WHO HEARTS)',
+  fu_bp_urgent: 'Very high BP (≥180/110) — urgent review needed (WHO HEARTS)',
+  fu_glucose: 'High blood glucose — review glycaemic control (ADA Standards of Care)',
+
+  /* ===== v3: guest mode ===== */
+  nav_kb: 'Knowledge',
+  g_welcome_title: 'Welcome to Clinic EMR',
+  g_welcome_sub: 'Choose how to continue',
+  g_btn_guest: '👤 Guest mode (view only)',
+  g_btn_full: '🔓 Complete version',
+  g_password: 'Password', g_wrong: '❌ Wrong password',
+  g_banner: '👤 Guest mode — view only',
+  g_unlock: '🔓 Unlock complete version',
+  g_upgrade_title: '🔓 Unlock complete version',
+  g_upgrade_d: 'This feature needs the complete version. Enter the password from the doctor.',
+  g_home_drugs: '💊 Browse drug reference', g_home_kb: '🔬 Investigations + DDx knowledge',
+  g_readonly: 'ℹ️ View only — nothing is saved',
+  g_kb_title: '🔬 Investigations + DDx knowledge',
+  g_demo_ph: 'Type symptoms (e.g. fever, cough)',
+  g_demo_btn: '🔍 Get suggestions',
+
+  disc2: 'These suggestions are for assistance only and do not replace the doctor\'s judgment.',
 
   disc: '⚠️ This app assists only and does not replace clinical judgment. Warnings are advisory.',
   offline: '📴 offline', sync_wait: '🔄 {0} pending', sync_ok: '✅ sync',

@@ -1,10 +1,13 @@
 /* Clinic EMR — offline cache */
-const CACHE = 'clinic-emr-v1';
+const CACHE = 'clinic-emr-v3';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './css/style.css',
-  './js/i18n.js', './js/core.js', './js/advice.js', './js/checks.js', './js/ui.js', './js/app.js',
+  './js/i18n.js', './js/core.js', './js/advice.js', './js/checks.js', './js/ui.js', './js/backup.js', './js/app.js',
   './data/drugs-A.js', './data/drugs-B.js', './data/drugs-C.js', './data/drugs-D.js',
+  './data/drugs-E.js', './data/drugs-F.js', './data/drugs-G.js', './data/drugs-H.js',
+  './data/drugs-I.js', './data/drugs-J.js', './data/drugs-K.js',
+  './data/investigations.js', './data/ddx.js',
   './icons/icon-192.png', './icons/icon-512.png'
 ];
 self.addEventListener('install', e => {

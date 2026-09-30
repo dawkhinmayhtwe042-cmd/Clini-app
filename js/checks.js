@@ -119,6 +119,9 @@ function runChecks(patient, items) {
         else if ((key === 'breastfeeding') && /breastfeed|နို့တိုက်/.test(ptext)) { whyMy = 'နို့တိုက်နေခြင်း'; whyEn = 'breastfeeding'; }
         else if (['renal impairment', 'kidney', 'ckd'].includes(key) && patient.renal_issue) { whyMy = 'ကျောက်ကပ်မကောင်း'; whyEn = 'renal impairment'; }
         else if (['hepatic impairment', 'liver'].includes(key) && /liver|hepat| cirrhosis|jaundice|အသည်း/.test(ptext)) { whyMy = 'အသည်းရောဂါ'; whyEn = 'hepatic impairment'; }
+        else if (['heart failure', 'cardiac failure', 'hf', 'chf'].includes(key) && patient.heart_failure) { whyMy = 'နှလုံးအားနည်းခြင်း'; whyEn = 'heart failure'; }
+        else if (['asthma', 'copd', 'bronchospasm', 'reactive airway'].includes(key) && patient.asthma_copd) { whyMy = 'ပန်းနာ/COPD'; whyEn = 'asthma/COPD'; }
+        else if (['epilepsy', 'seizure', 'convulsion'].includes(key) && patient.epilepsy) { whyMy = 'တက်ခြင်း (epilepsy)'; whyEn = 'epilepsy'; }
         else if (['children', 'child', 'pediatric'].includes(key) && age != null && age < 18) { whyMy = 'ကလေး'; whyEn = 'child'; }
         else if (key === 'elderly' && age != null && age >= 65) { whyMy = 'သက်ကြီး'; whyEn = 'elderly'; }
         else if (ptext.includes(key) && key.length > 2) { whyMy = key; whyEn = key; }
@@ -143,10 +146,42 @@ function runChecks(patient, items) {
         `${label}: ${drug.preg}`, `${label}: ${drug.preg}`, idx));
     }
 
-    // --- renal ---
+    // --- renal (keep: amber with dose-adjustment text) ---
     if (patient.renal_issue && drug.dose_renal)
       push(W('amber', 'ကျောက်ကပ်အခြေအနေ — ပမာဏညှိရန်', 'Renal impairment — adjust dose',
         `${label}: ${drug.dose_renal}`, `${label}: ${drug.dose_renal}`, idx));
+
+    // --- G6PD deficiency (red for high hemolysis risk, amber for possible) ---
+    if (patient.g6pd && drug.g6pd_risk === 'high')
+      push(W('red', 'G6PD — သွေးနီဥပြိုကွဲအန္တရာယ်', 'G6PD — hemolysis risk',
+        `${label}: G6PD ချို့တဲ့သူ သွေးနီဥပြိုကွဲနိုင်ခြေမြင့်သည် — ရှောင်ရန်။`,
+        `${label}: high hemolysis risk in G6PD deficiency — avoid.`, idx));
+    else if (patient.g6pd && drug.g6pd_risk === 'possible')
+      push(W('amber', 'G6PD — သတိထားရန်', 'G6PD — caution',
+        `${label}: G6PD ချို့တဲ့သူတွင် သွေးနီဥပြိုကွဲနိုင်ခြေရှိသည် — စောင့်ကြည့်သုံးစွဲပါ။`,
+        `${label}: possible hemolysis risk in G6PD deficiency — use with monitoring.`, idx));
+
+    // --- liver impairment (advisory, shows drug's liver guidance text) ---
+    {
+      const liv = norm(patient.liver_issue || 'none');
+      if (drug.liver && (liv === 'severe' || liv === 'moderate' || liv === 'mild')) {
+        const lvl = liv === 'severe' ? 'red' : 'amber';
+        const gMy = liv === 'severe' ? 'ပြင်းထန်' : liv === 'moderate' ? 'အလယ်အလတ်' : 'အနည်းငယ်';
+        const gEn = liv === 'severe' ? 'severe' : liv === 'moderate' ? 'moderate' : 'mild';
+        push(W(lvl, 'အသည်းအခြေအနေ — ဆေးသတိပြုရန်', 'Liver impairment — caution advised',
+          `${label}: အသည်း${gMy} — ${drug.liver}`,
+          `${label}: ${gEn} hepatic impairment — ${drug.liver}`, idx));
+      }
+    }
+
+    // --- alcohol use: flag when drug precautions/interactions mention alcohol ---
+    if (patient.alcohol && patient.alcohol !== 'no') {
+      const hay = norm((drug.precautions || '') + ' ' + JSON.stringify(drug.interactions || []));
+      if (/alcohol/.test(hay))
+        push(W('amber', 'အရက် — ဆေးနှင့်ဓာတ်ပြုနိုင်သည်', 'Alcohol — possible interaction',
+          `${label}: လူနာအရက်သောက်သည် — ဆေးညွှန်းတွင် အရက်နှင့်ပတ်သက်၍ သတိပေးချက်ရှိသည်။`,
+          `${label}: patient drinks alcohol — drug notes mention alcohol interaction.`, idx));
+    }
   });
 
   // --- drug-drug interactions ---

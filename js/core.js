@@ -10,7 +10,9 @@ function getCfg() {
   try { return JSON.parse(localStorage.getItem(CFG_KEY)) || {}; } catch { return {}; }
 }
 function saveCfg(c) { localStorage.setItem(CFG_KEY, JSON.stringify(c)); }
-function isConfigured() { const c = getCfg(); return !!(c.supabaseUrl && c.anonKey); }
+function isConfigured() { const c = getCfg(); return !!(c.offlineOnly || (c.supabaseUrl && c.anonKey)); }
+/* Offline-APK mode: no Supabase, no login — data stays on the device. */
+function isOfflineMode() { return !!(getCfg().offlineOnly); }
 
 /* ---------------- tiny Supabase client (REST + Auth) ---------------- */
 const SES_KEY = 'clinic_session_v1';
@@ -203,16 +205,17 @@ const Sync = {
       } catch (e) { console.warn('pull failed', t, e.message); }
     }
     persistCache(cache); persistMeta(meta);
+    try { await dedupeDrugs(); } catch (e) { console.warn('dedupe after pull', e.message); }
   }
 };
 
 /* Seed bundled drug data into local cache if server is empty (fallback when seed SQL wasn't run).
-   V2: also backfills contra/precautions/contra_keys for rows seeded by older app versions. */
+   V3: also backfills liver/g6pd_risk/timing/counsel for rows seeded by older app versions. */
 async function ensureLocalDrugSeed() {
   const meta = loadMeta();
-  if (meta.drugsSeededV2) return;
+  if (meta.drugsSeededV3) return;
   const chunks = window.DRUG_CHUNKS || [];
-  if (chunks.length === 0) { meta.drugsSeededV2 = true; persistMeta(meta); return; }
+  if (chunks.length === 0) { meta.drugsSeededV3 = true; persistMeta(meta); return; }
   const flat = chunks.flat();
   const byGeneric = {};
   for (const d of Store.all('drugs')) byGeneric[(d.generic || '').toLowerCase()] = d;
@@ -220,7 +223,7 @@ async function ensureLocalDrugSeed() {
     const key = (d.g || '').toLowerCase();
     if (!key) continue;
     const ex = byGeneric[key];
-    if (ex && Array.isArray(ex.contra_keys) && ex.contra_keys.length) continue; // already complete
+    if (ex && Array.isArray(ex.contra_keys) && ex.contra_keys.length && ex.liver !== undefined && ex.g6pd_risk !== undefined && ex.timing !== undefined && ex.counsel !== undefined) continue; // already complete
     const row = {
       generic: d.g, brands: (d.b || []).join('; '), formulations: (d.f || []).join('; '),
       category: d.cat || '', indications: d.ind || '', dose_adult: d.dose_adult || '',
@@ -230,17 +233,87 @@ async function ensureLocalDrugSeed() {
       ped_freq: d.ped_freq || '', dose_renal: d.dose_renal || '', ci: d.ci || '',
       contra: d.contra || '', precautions: d.prec || '', contra_keys: d.contra_keys || [],
       interactions: d.inter || [], allergy: d.allergy || '', preg: d.preg || '',
-      mon: d.mon || '', custom: false
+      mon: d.mon || '', custom: false,
+      liver: d.liv || '', g6pd_risk: d.g6pd || '', timing: d.tim || '', counsel: d.coun || ''
     };
     if (ex) {
       // backfill only the new fields, keep server/local edits to other fields
-      const needs = !ex.contra || !ex.precautions || !(Array.isArray(ex.contra_keys) && ex.contra_keys.length);
-      if (needs) Store.save('drugs', { ...ex, contra: ex.contra || row.contra, precautions: ex.precautions || row.precautions, contra_keys: (Array.isArray(ex.contra_keys) && ex.contra_keys.length) ? ex.contra_keys : row.contra_keys });
+      const needs = !ex.contra || !ex.precautions || !(Array.isArray(ex.contra_keys) && ex.contra_keys.length) ||
+        ex.liver === undefined || ex.g6pd_risk === undefined || ex.timing === undefined || ex.counsel === undefined;
+      if (needs) Store.save('drugs', { ...ex,
+        contra: ex.contra || row.contra,
+        precautions: ex.precautions || row.precautions,
+        contra_keys: (Array.isArray(ex.contra_keys) && ex.contra_keys.length) ? ex.contra_keys : row.contra_keys,
+        liver: ex.liver !== undefined ? ex.liver : row.liver,
+        g6pd_risk: ex.g6pd_risk !== undefined ? ex.g6pd_risk : row.g6pd_risk,
+        timing: ex.timing !== undefined ? ex.timing : row.timing,
+        counsel: ex.counsel !== undefined ? ex.counsel : row.counsel });
     } else {
       Store.save('drugs', row);
     }
   }
-  meta.drugsSeededV2 = true; persistMeta(meta);
+  meta.drugsSeededV3 = true; persistMeta(meta);
+}
+
+/* Dedupe drugs by lowercase generic name.
+   Repairs duplicates created when the local seed ran before the server seed
+   was pulled (both copies get synced by id). Runs at boot and after every
+   pull — deterministic keeper choice so all devices converge.
+   Doctor's device also deletes the duplicate rows on the server. */
+async function dedupeDrugs() {
+  const cache = loadCache();
+  const table = cache.drugs || {};
+  const rows = Object.values(table);
+  if (rows.length < 2) return;
+  const groups = {};
+  for (const r of rows) {
+    const k = (r.generic || '').toLowerCase().trim();
+    if (!k) continue;
+    (groups[k] = groups[k] || []).push(r);
+  }
+  const FIELDS = ['brands', 'formulations', 'category', 'indications', 'dose_adult', 'dose_ped', 'ped_freq', 'dose_renal', 'ci', 'contra', 'precautions', 'allergy', 'preg', 'mon', 'liver', 'g6pd_risk', 'timing', 'counsel'];
+  const NUMF = ['ped_mgkg', 'ped_mgkg_max', 'ped_daymax_mgkg', 'ped_cap_mg'];
+  const nonEmpty = v => v != null && String(v).trim() !== '';
+  const completeness = r =>
+    FIELDS.reduce((n, f) => n + (nonEmpty(r[f]) ? 1 : 0), 0) +
+    NUMF.reduce((n, f) => n + ((r[f] != null && r[f] !== '') ? 1 : 0), 0) +
+    ((Array.isArray(r.contra_keys) && r.contra_keys.length) ? 1 : 0) +
+    ((Array.isArray(r.interactions) && r.interactions.length) ? 1 : 0);
+  const canDeleteRemote = (typeof App !== 'undefined' && App.isDoctor) && isConfigured() && Auth.user();
+  const ops = loadOps();
+  let touched = false;
+  for (const k of Object.keys(groups)) {
+    const g = groups[k];
+    if (g.length < 2) continue;
+    const sorted = [...g].sort((a, b) =>
+      ((b.custom ? 1 : 0) - (a.custom ? 1 : 0)) ||
+      (completeness(b) - completeness(a)) ||
+      String(a.created_at || '').localeCompare(String(b.created_at || '')));
+    const keeper = sorted[0];
+    const losers = sorted.slice(1);
+    for (const L of losers) {
+      for (const f of FIELDS) if (!nonEmpty(keeper[f]) && nonEmpty(L[f])) keeper[f] = L[f];
+      for (const f of NUMF) if ((keeper[f] == null || keeper[f] === '') && L[f] != null && L[f] !== '') keeper[f] = L[f];
+      if ((!keeper.ped_flag || keeper.ped_flag === 'no_data') && L.ped_flag && L.ped_flag !== 'no_data') keeper.ped_flag = L.ped_flag;
+      const ck = new Set([...(keeper.contra_keys || []), ...((L.contra_keys) || [])]);
+      if (ck.size > (keeper.contra_keys || []).length) keeper.contra_keys = [...ck];
+      keeper.interactions = keeper.interactions || [];
+      const seen = new Set(keeper.interactions.map(x => JSON.stringify(x)));
+      for (const it of (L.interactions || [])) { const s = JSON.stringify(it); if (!seen.has(s)) { seen.add(s); keeper.interactions.push(it); } }
+    }
+    keeper.updated_at = nowIso();
+    table[keeper.id] = keeper;
+    ops.push({ op: 'update', table: 'drugs', id: keeper.id, ts: Date.now() });
+    for (const L of losers) {
+      delete table[L.id];
+      if (canDeleteRemote) ops.push({ op: 'delete', table: 'drugs', id: L.id, ts: Date.now() });
+    }
+    touched = true;
+  }
+  if (touched) {
+    persistCache(cache); persistOps(ops);
+    if (navigator.onLine) Sync.pushSoon();
+  }
 }
 
 /* Starter visit templates (SmartPhrase-style) inserted once */
